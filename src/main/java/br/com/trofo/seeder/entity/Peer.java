@@ -39,7 +39,7 @@ public class Peer implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(length = 40, nullable = false)
+    @Column(length = 20, nullable = false)
     private String infoHash;
     @Column(nullable = false)
     private String ip;
