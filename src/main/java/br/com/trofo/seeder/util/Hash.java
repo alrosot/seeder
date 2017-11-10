@@ -4,6 +4,10 @@
  */
 package br.com.trofo.seeder.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
@@ -52,4 +56,15 @@ public class Hash {
         }
         return data;
     }
+
+    @NotNull
+    public static String toHexString(@NotNull String bytesAsString, @Nullable Charset charset) {
+
+        try{
+            return getHex(bytesAsString.getBytes(charset));
+        } catch (Exception e){
+            return "error: " + e;
+        }
+    }
+
 }

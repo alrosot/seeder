@@ -30,9 +30,11 @@ class AnnounceController {
             @RequestParam(value = "event", required = false) eventType: String? = "started",
             reqeust: HttpServletRequest): String {
 
+        var hexString = Hash.toHexString(infoHash, Charsets.ISO_8859_1).toLowerCase()
+
         var responseString = "error"
         try {
-            val requestingPeer = buildRequestingPeer(eventType ?: "started", infoHash, reqeust)
+            val requestingPeer = buildRequestingPeer(eventType ?: "started", hexString, reqeust)
 
             val peers = peerDao.getPeers(requestingPeer, 100)
 
