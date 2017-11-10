@@ -3,15 +3,18 @@ package br.com.trofo.seeder
 import br.com.trofo.seeder.dao.PeerDao
 import br.com.trofo.seeder.entity.Peer
 import br.com.trofo.seeder.util.Bencode
-import br.com.trofo.seeder.util.Hash
+import br.com.trofo.seeder.util.BitTorrentEncoder
+import org.apache.tomcat.util.buf.HexUtils
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
+import java.nio.charset.Charset
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -20,6 +23,9 @@ import javax.servlet.http.HttpServletRequest
 class AnnounceController {
 
     val INTERVAL = 3600
+
+    @Value("\${spring.http.encoding.charset}")
+    private lateinit var encoding: String
 
     @Autowired
     private lateinit var peerDao: PeerDao
@@ -30,7 +36,7 @@ class AnnounceController {
             @RequestParam(value = "event", required = false) eventType: String? = "started",
             reqeust: HttpServletRequest): String {
 
-        var hexString = Hash.toHexString(infoHash, Charsets.ISO_8859_1).toLowerCase()
+        var hexString = BitTorrentEncoder.toHexString(infoHash, Charset.forName(encoding)).toLowerCase()
 
         var responseString = "error"
         try {
@@ -79,7 +85,7 @@ class AnnounceController {
                 leechers++
             }
 
-            val ipBytes = Hash.hexStringToByteArray(requestingPeer.ip)
+            val ipBytes = BitTorrentEncoder.hexStringToByteArray(requestingPeer.ip)
 
             val port = ByteBuffer.allocate(4)
             port.putInt(requestingPeer.port!!)
@@ -114,7 +120,7 @@ class AnnounceController {
         requestingPeer.port = getPort(request)
 
         val remoteAddress = getAddress(request)
-        requestingPeer.ip = Hash.getHex(remoteAddress.address)
+        requestingPeer.ip = HexUtils.toHexString(remoteAddress.address)
 
         val expireTime: Date
         if (event == "stopped") {
