@@ -20,6 +20,7 @@ public class BitTorrentEncoder {
 
     @NotNull
     public static String toHexString(@NotNull String bytesAsString, @Nullable Charset charset) {
+        if(bytesAsString.length()==40) return bytesAsString;
         try {
             return HexUtils.toHexString(bytesAsString.getBytes(charset));
         } catch (Exception e) {

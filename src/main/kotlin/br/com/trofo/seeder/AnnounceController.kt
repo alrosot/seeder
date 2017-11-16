@@ -5,6 +5,7 @@ import br.com.trofo.seeder.entity.Peer
 import br.com.trofo.seeder.util.Bencode
 import br.com.trofo.seeder.util.BitTorrentEncoder
 import org.apache.tomcat.util.buf.HexUtils
+import org.slf4j.LoggerFactory
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -22,6 +23,8 @@ import javax.servlet.http.HttpServletRequest
 
 class AnnounceController {
 
+
+    val logger = LoggerFactory.getLogger(AnnounceController::class.java)
     val INTERVAL = 3600
 
     @Value("\${spring.http.encoding.charset}")
@@ -34,13 +37,15 @@ class AnnounceController {
     fun announce(
             @RequestParam(value = "info_hash") infoHash: String,
             @RequestParam(value = "event", required = false) eventType: String? = "started",
-            reqeust: HttpServletRequest): String {
+            request: HttpServletRequest): String {
+
+        //logger.info("Request for $infoHash")
 
         var hexString = BitTorrentEncoder.toHexString(infoHash, Charset.forName(encoding)).toLowerCase()
 
         var responseString = "error"
         try {
-            val requestingPeer = buildRequestingPeer(eventType ?: "started", hexString, reqeust)
+            val requestingPeer = buildRequestingPeer(eventType ?: "started", hexString, request)
 
             val peers = peerDao.getPeers(requestingPeer, 100)
 
