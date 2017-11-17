@@ -1,6 +1,7 @@
 package br.com.trofo.seeder
 
 import br.com.trofo.seeder.dao.PeerDao
+import br.com.trofo.seeder.dao.PeerRepository
 import br.com.trofo.seeder.entity.Peer
 import br.com.trofo.seeder.util.Bencode
 import br.com.trofo.seeder.util.BitTorrentEncoder
@@ -23,7 +24,6 @@ import javax.servlet.http.HttpServletRequest
 
 class AnnounceController {
 
-
     val logger = LoggerFactory.getLogger(AnnounceController::class.java)
     val INTERVAL = 3600
 
@@ -33,13 +33,20 @@ class AnnounceController {
     @Autowired
     private lateinit var peerDao: PeerDao
 
+    @Autowired
+    private lateinit var peerRepository: PeerRepository
+
+    @RequestMapping("/info_hash")
+    fun infoHashes() : Set<String> {
+        logger.debug("List of infos requested")
+        return peerRepository.findDistinctInfoHashes()
+    }
+
     @RequestMapping("/announce", produces = arrayOf("text/plain"))
     fun announce(
             @RequestParam(value = "info_hash") infoHash: String,
             @RequestParam(value = "event", required = false) eventType: String? = "started",
             request: HttpServletRequest): String {
-
-        //logger.info("Request for $infoHash")
 
         var hexString = BitTorrentEncoder.toHexString(infoHash, Charset.forName(encoding)).toLowerCase()
 
