@@ -24,7 +24,10 @@ public class AnnounceIntegrationTest {
     @Test
     public void announceNewTorrent() throws UnsupportedEncodingException {
         assertThat(getInfoHashes(), is("[]"));
-        verifyRegistration("aaacccbbbdddc723b738fd8b895c953a5d22ba7b");
+        String hexInfoHash = "aaacccbbbdddc723b738fd8b895c953a5d22ba7b";
+        verifyRegistration(hexInfoHash);
+        verifyRegistration(hexInfoHash); // should not duplicate
+        assertThat(getInfoHashes(), is("[\"" + hexInfoHash + "\"]"));
         verifyRegistration("%FE%AF%0D%0D%B5%1D%C7%23%B78%FD%8B%89%5C%95%3A%5D%22%BA%7B", "feaf0d0db51dc723b738fd8b895c953a5d22ba7b");
     }
 

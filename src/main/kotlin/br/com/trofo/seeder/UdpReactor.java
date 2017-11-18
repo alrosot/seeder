@@ -2,9 +2,7 @@ package br.com.trofo.seeder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +13,6 @@ import reactor.net.tcp.support.SocketUtils;
 import reactor.net.udp.DatagramServer;
 import reactor.net.udp.spec.DatagramServerSpec;
 import reactor.spring.context.config.EnableReactor;
-
-import java.util.concurrent.CountDownLatch;
 
 @Configuration
 @EnableAutoConfiguration
@@ -40,14 +36,4 @@ public class UdpReactor {
         return server;
     }
 
-    @Bean
-    public CountDownLatch latch() {
-        return new CountDownLatch(1);
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        ApplicationContext ctx = SpringApplication.run(UdpReactor.class);
-        CountDownLatch latch = ctx.getBean(CountDownLatch.class);
-        latch.await();
-    }
 }
