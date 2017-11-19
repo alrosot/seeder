@@ -1,4 +1,4 @@
-package br.com.trofo.seeder;
+package br.com.trofo.seeder.udp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,7 +9,7 @@ import org.apache.tomcat.util.buf.HexUtils;
 
 import java.util.Arrays;
 
-public class QuoteServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
