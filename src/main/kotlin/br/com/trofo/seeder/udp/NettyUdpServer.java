@@ -4,6 +4,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,9 @@ public class NettyUdpServer {
     @Value("${server.udp.port}")
     private int udpPort;
 
+    @Autowired
+    private UdpHandler udpHandler;
+
     @PostConstruct
     public void createUdpServer() throws Exception {
         new Thread(new Runnable() {
@@ -25,7 +29,7 @@ public class NettyUdpServer {
                     Bootstrap b = new Bootstrap();
                     b.group(group)
                             .channel(NioDatagramChannel.class)
-                            .handler(new UdpHandler());
+                            .handler(udpHandler);
 
                     b.bind(udpPort).sync().channel().closeFuture().await();
                 } catch (InterruptedException e) {
