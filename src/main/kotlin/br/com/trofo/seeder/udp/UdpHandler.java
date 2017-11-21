@@ -38,7 +38,14 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
             int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
             peerService.registerPeer(infoHash, ip, port);
-            //TODO reply with peers
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("00000001"); // action - 1 announce
+            sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 4, 8))); // trasnactionId
+
+            byte[] response = HexUtils.fromHexString(sb.toString());
+            ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(response), msg.sender()));
         }
     }
 

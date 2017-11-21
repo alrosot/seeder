@@ -77,6 +77,15 @@ public class AnnounceIntegrationTest {
 
         assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
 
+        DatagramPacket responsePacket = new DatagramPacket(new byte[30], 30);
+        socket.receive(responsePacket);
+        System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
+
+        String interval = "00000e10";
+        assertThat(HexUtils.toHexString(responsePacket.getData()), is("00000001" + transactionId + interval
+                + "00000001" + "00000001" + HexUtils.toHexString(InetAddress.getLoopbackAddress().getAddress()) + port
+        ));
+
     }
 
 
