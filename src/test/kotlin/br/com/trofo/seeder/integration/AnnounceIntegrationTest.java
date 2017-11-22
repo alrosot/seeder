@@ -1,6 +1,7 @@
 package br.com.trofo.seeder.integration;
 
 import br.com.trofo.seeder.dao.PeerRepository;
+import br.com.trofo.seeder.entity.Peer;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +19,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,9 +60,18 @@ public class AnnounceIntegrationTest {
 
     @Test
     public void shoudAnnounceOverUdop() throws Exception {
+        String infohash = "feaf0d0db51dc723b738fd8b895c953a5d22ba7b";
+        Peer anotherPeer = new Peer();
+        String anotherIp = "ffff";
+        anotherPeer.setIp(anotherIp);
+        anotherPeer.setPort(1);
+        anotherPeer.setExpires(new Date(System.currentTimeMillis() + 10000));
+        anotherPeer.setInfoHash(infohash);
+        peerRepository.save(anotherPeer);
+
+
         String connectionId = "f56350d9cf7c3735";
         String action = "00000001";
-        String infohash = "feaf0d0db51dc723b738fd8b895c953a5d22ba7b";
         String port = "2327";
         String event = "00000002";
         String peerId = "2d7142333347302d684e545f6b59746865214e5a";
@@ -76,16 +87,15 @@ public class AnnounceIntegrationTest {
         socket.send(packet);
 
         assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
-
-        DatagramPacket responsePacket = new DatagramPacket(new byte[30], 30);
+        //FIXME I believe this response should be 26 bytes long acutally
+        DatagramPacket responsePacket = new DatagramPacket(new byte[23], 23);
         socket.receive(responsePacket);
         System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
 
         String interval = "00000e10";
         assertThat(HexUtils.toHexString(responsePacket.getData()), is("00000001" + transactionId + interval
-                + "00000001" + "00000001" + HexUtils.toHexString(InetAddress.getLoopbackAddress().getAddress()) + port
+                + "00000001" + "00000001" + "ffff01"
         ));
-
     }
 
 

@@ -1,6 +1,7 @@
 package br.com.trofo.seeder.udp;
 
 import br.com.trofo.seeder.PeerService;
+import br.com.trofo.seeder.entity.Peer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,9 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Random;
 
 import static java.lang.System.arraycopy;
+import static org.apache.commons.lang3.StringUtils.leftPad;
 
 @Component
 public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
@@ -37,14 +40,24 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
             String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
             int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
-            peerService.registerPeer(infoHash, ip, port);
+            Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port);
 
             StringBuilder sb = new StringBuilder();
 
             sb.append("00000001"); // action - 1 announce
-            sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 4, 8))); // trasnactionId
+            sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 12, 16))); // trasnactionId
 
-            byte[] response = HexUtils.fromHexString(sb.toString());
+            sb.append("00000e10"); // TODO interval
+            sb.append("00000001"); // TODO leechers
+            sb.append("00000001"); // TODO seeders
+
+            for (Peer seeder : peers) {
+                sb.append(seeder.getIp());
+                sb.append(leftPad(Integer.toHexString(seeder.getPort()), 2, '0'));
+            }
+
+            String input = sb.toString();
+            byte[] response = HexUtils.fromHexString(input);
             ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(response), msg.sender()));
         }
     }

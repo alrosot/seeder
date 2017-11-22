@@ -21,6 +21,7 @@ public class NettyUdpServer {
 
     @PostConstruct
     public void createUdpServer() throws Exception {
+        //TODO Check best way to start netty server on separate thread
         new Thread(new Runnable() {
             @Override
             public void run() {
