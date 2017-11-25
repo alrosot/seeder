@@ -53,7 +53,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             for (Peer seeder : peers) {
                 sb.append(seeder.getIp());
-                sb.append(leftPad(Integer.toHexString(seeder.getPort()), 2, '0'));
+                sb.append(leftPad(Integer.toHexString(seeder.getPort()), 4, '0'));
             }
 
             String input = sb.toString();

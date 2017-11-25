@@ -62,7 +62,7 @@ public class AnnounceIntegrationTest {
     public void shoudAnnounceOverUdop() throws Exception {
         String infohash = "feaf0d0db51dc723b738fd8b895c953a5d22ba7b";
         Peer anotherPeer = new Peer();
-        String anotherIp = "ffff";
+        String anotherIp = "ffffffff";
         anotherPeer.setIp(anotherIp);
         anotherPeer.setPort(1);
         anotherPeer.setExpires(new Date(System.currentTimeMillis() + 10000));
@@ -87,15 +87,13 @@ public class AnnounceIntegrationTest {
         socket.send(packet);
 
         assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
-        //FIXME I believe this response should be 26 bytes long acutally
-        DatagramPacket responsePacket = new DatagramPacket(new byte[23], 23);
+        DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
         socket.receive(responsePacket);
         System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
 
         String interval = "00000e10";
-        assertThat(HexUtils.toHexString(responsePacket.getData()), is("00000001" + transactionId + interval
-                + "00000001" + "00000001" + "ffff01"
-        ));
+        String expected = "00000001" + transactionId + interval + "00000001" + "00000001" + "ffffffff0001";
+        assertThat(HexUtils.toHexString(responsePacket.getData()), is(expected));
     }
 
 
