@@ -96,7 +96,6 @@ public class AnnounceIntegrationTest {
         assertThat(HexUtils.toHexString(responsePacket.getData()), is(expected));
     }
 
-
     @NotNull
     private String startNewConnection() throws IOException {
         byte[] buf = HexUtils.fromHexString("000004172710198000000000abcddcba");

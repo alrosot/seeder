@@ -12,6 +12,8 @@ import java.util.Date;
 @Service
 public class PeerService {
 
+    public static final int INTERVAL = 3600;
+
     @Autowired
     private PeerRepository peerRepository;
 
@@ -23,7 +25,7 @@ public class PeerService {
         peer.setInfoHash(infohash);
         peer.setIp(ip);
         peer.setPort(port);
-        peer.setExpires(new Date(new Double(System.currentTimeMillis() + (3600.0 * 1000.0 * 1.2)).intValue())); //TODO calculate
+        peer.setExpires(new Date(new Double(System.currentTimeMillis() + (INTERVAL * 1000.0 * 1.2)).intValue())); //TODO calculate
 
         peerDao.persistEntity(peer);
 

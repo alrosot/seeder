@@ -1,5 +1,6 @@
 package br.com.trofo.seeder
 
+import br.com.trofo.seeder.PeerService.INTERVAL
 import br.com.trofo.seeder.dao.PeerDao
 import br.com.trofo.seeder.dao.PeerRepository
 import br.com.trofo.seeder.entity.Peer
@@ -21,11 +22,9 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-
 class AnnounceController {
 
     val logger = LoggerFactory.getLogger(AnnounceController::class.java)
-    val INTERVAL = 3600
 
     @Value("\${spring.http.encoding.charset}")
     private lateinit var encoding: String

@@ -37,29 +37,37 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         if (Arrays.equals(firstEightBytes, connectionMagicNumber)) {
             acceptConnectionRequest(ctx, msg, bytes);
         } else {
-            String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
-            String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
-            int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
-            Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port);
-
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("00000001"); // action - 1 announce
-            sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 12, 16))); // trasnactionId
-
-            sb.append("00000e10"); // TODO interval
-            sb.append("00000001"); // TODO leechers
-            sb.append("00000001"); // TODO seeders
-
-            for (Peer seeder : peers) {
-                sb.append(seeder.getIp());
-                sb.append(leftPad(Integer.toHexString(seeder.getPort()), 4, '0'));
-            }
-
-            String input = sb.toString();
-            byte[] response = HexUtils.fromHexString(input);
-            ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(response), msg.sender()));
+            ipV4AnnounceResponse(ctx, msg, bytes);
         }
+    }
+
+    private void ipV4AnnounceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
+        String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
+        String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
+        int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
+        Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port);
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("00000001"); // action - 1 announce
+        sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 12, 16))); // trasnactionId
+
+        sb.append(intToHex(PeerService.INTERVAL, 8));
+        sb.append(intToHex(peers.size(), 8)); // leechers
+        sb.append(intToHex(peers.size(), 8)); // seeders
+
+        for (Peer seeder : peers) {
+            sb.append(seeder.getIp());
+            sb.append(intToHex(seeder.getPort(), 4));
+        }
+
+        String input = sb.toString();
+        byte[] response = HexUtils.fromHexString(input);
+        ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(response), msg.sender()));
+    }
+
+    private String intToHex(Integer number, int padding) {
+        return leftPad(Integer.toHexString(number), padding, '0');
     }
 
     private void acceptConnectionRequest(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
