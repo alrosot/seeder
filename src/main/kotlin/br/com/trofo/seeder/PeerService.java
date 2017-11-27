@@ -20,12 +20,18 @@ public class PeerService {
     @Autowired
     private PeerDao peerDao;
 
-    public Collection<Peer> registerPeer(String infohash, String ip, int port) {
+    public Collection<Peer> registerPeer(String infohash, String ip, int port, boolean active) {
         Peer peer = new Peer();
         peer.setInfoHash(infohash);
         peer.setIp(ip);
         peer.setPort(port);
-        peer.setExpires(new Date(new Double(System.currentTimeMillis() + (INTERVAL * 1000.0 * 1.2)).intValue())); //TODO calculate
+        Date expires;
+        if (active) {
+            expires = new Date(new Double(System.currentTimeMillis() + (INTERVAL * 1000.0 * 1.2)).intValue());
+        } else {
+            expires = new Date();
+        }
+        peer.setExpires(expires);
 
         peerDao.persistEntity(peer);
 

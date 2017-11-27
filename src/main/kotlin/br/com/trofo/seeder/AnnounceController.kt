@@ -76,7 +76,6 @@ class AnnounceController {
         } else request.remotePort
     }
 
-
     @Throws(BeansException::class)
     private fun persistOrUpdatePeer(requestingPeer: Peer) {
         peerDao.persistEntity(requestingPeer)
@@ -124,6 +123,7 @@ class AnnounceController {
         return Bencode.encode(responseParams)
     }
 
+    //TODO replace this by the one in PeerService
     @Throws(NumberFormatException::class, UnknownHostException::class)
     private fun buildRequestingPeer(event: String, infoHash: String, request: HttpServletRequest): Peer {
         val requestingPeer = Peer()
@@ -167,5 +167,4 @@ class AnnounceController {
         val realIP = request.getHeader("X-Real-IP")
         return realIP ?: request.remoteAddr
     }
-
 }

@@ -37,6 +37,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         if (Arrays.equals(firstEightBytes, connectionMagicNumber)) {
             acceptConnectionRequest(ctx, msg, bytes);
         } else {
+            //TODO ipV6 pending
             ipV4AnnounceResponse(ctx, msg, bytes);
         }
     }
@@ -44,8 +45,9 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private void ipV4AnnounceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
         String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
         String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
+        String event = HexUtils.toHexString(Arrays.copyOfRange(bytes, 80, 84));
         int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
-        Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port);
+        Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port, !"00000003".equals(event));
 
         StringBuilder sb = new StringBuilder();
 
