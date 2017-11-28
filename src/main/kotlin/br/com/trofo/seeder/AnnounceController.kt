@@ -30,13 +30,16 @@ class AnnounceController {
     private lateinit var encoding: String
 
     @Autowired
+    private lateinit var peerService: PeerService
+
+    @Autowired
     private lateinit var peerDao: PeerDao
 
     @Autowired
     private lateinit var peerRepository: PeerRepository
 
     @RequestMapping("/info_hash")
-    fun infoHashes() : Set<String> {
+    fun infoHashes(): Set<String> {
         logger.debug("List of infos requested")
         return peerRepository.findDistinctInfoHashes()
     }
@@ -51,21 +54,18 @@ class AnnounceController {
 
         var responseString = "error"
         try {
-            val requestingPeer = buildRequestingPeer(eventType ?: "started", hexString, request)
+            var port = getPort(request)
+            val remoteAddress = getAddress(request)
+            var ip = HexUtils.toHexString(remoteAddress.address)
 
-            val peers = peerDao.getPeers(requestingPeer, 100)
+            val peers = peerService.registerPeer(hexString, ip, port, PeerEvent.valueIfPresent(eventType))
 
             responseString = buildCompactResponse(peers)
-
-            persistOrUpdatePeer(requestingPeer)
-
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
 
         return responseString
-
-
     }
 
     @Throws(NumberFormatException::class)
@@ -123,30 +123,6 @@ class AnnounceController {
         return Bencode.encode(responseParams)
     }
 
-    //TODO replace this by the one in PeerService
-    @Throws(NumberFormatException::class, UnknownHostException::class)
-    private fun buildRequestingPeer(event: String, infoHash: String, request: HttpServletRequest): Peer {
-        val requestingPeer = Peer()
-        requestingPeer.infoHash = infoHash
-        requestingPeer.port = getPort(request)
-
-        val remoteAddress = getAddress(request)
-        requestingPeer.ip = HexUtils.toHexString(remoteAddress.address)
-
-        val expireTime: Date
-        if (event == "stopped") {
-            expireTime = Date()
-        } else {
-            expireTime = Date(System.currentTimeMillis() + (INTERVAL.toDouble() * 1000.0 * 1.2).toInt())
-        }
-        requestingPeer.expires = expireTime
-
-        if (event == "completed") {
-            requestingPeer.isComplete = true
-        }
-
-        return requestingPeer
-    }
 
     @Throws(UnknownHostException::class)
     private fun getAddress(request: HttpServletRequest): InetAddress {

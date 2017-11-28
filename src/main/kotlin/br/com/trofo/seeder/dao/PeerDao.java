@@ -31,7 +31,6 @@ public class PeerDao {
             existingPeer.setComplete(peer.isComplete());
             entityManager.merge(existingPeer);
         }
-
     }
 
     public Collection<Peer> getPeers(Peer requestingPeer, int numWant) {

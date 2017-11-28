@@ -13,8 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Random;
 
+import static br.com.trofo.seeder.PeerEvent.getByUdpCode;
 import static java.lang.System.arraycopy;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
@@ -47,7 +49,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
         String event = HexUtils.toHexString(Arrays.copyOfRange(bytes, 80, 84));
         int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
-        Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port, !"00000003".equals(event));
+        Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port, Optional.of(getByUdpCode(event)));
 
         StringBuilder sb = new StringBuilder();
 
