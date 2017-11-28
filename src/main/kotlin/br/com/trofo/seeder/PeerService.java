@@ -14,6 +14,8 @@ import java.util.Optional;
 public class PeerService {
 
     public static final int INTERVAL = 3600;
+    public static final int EXPIRATION_INTERVAL_MILLIS = INTERVAL * 1200;
+
 
     @Autowired
     private PeerRepository peerRepository;
@@ -28,10 +30,10 @@ public class PeerService {
         peer.setIp(ip);
         peer.setPort(port);
         Date expires;
-        if (!defaultedEvent.equals(PeerEvent.stopped)) {
-            expires = new Date(new Double(System.currentTimeMillis() + (INTERVAL * 1000.0 * 1.2)).intValue());
+        if (defaultedEvent != PeerEvent.stopped) {
+            expires = new Date(System.currentTimeMillis() + EXPIRATION_INTERVAL_MILLIS);
         } else {
-            expires = new Date();
+            expires = new Date(System.currentTimeMillis());
         }
         peer.setExpires(expires);
         peer.setComplete(defaultedEvent.equals(PeerEvent.completed));

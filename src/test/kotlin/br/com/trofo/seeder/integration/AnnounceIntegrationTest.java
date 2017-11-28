@@ -20,6 +20,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Date;
+import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,11 +44,20 @@ public class AnnounceIntegrationTest {
     @Test
     public void announceNewTorrent() throws UnsupportedEncodingException {
         assertThat(getInfoHashes(), is("[]"));
-        String hexInfoHash = "aaacccbbbdddc723b738fd8b895c953a5d22ba7b";
+        String hexInfoHash = randomInfoHash();
         verifyRegistration(hexInfoHash);
         verifyRegistration(hexInfoHash); // should not duplicate
         assertThat(getInfoHashes(), is("[\"" + hexInfoHash + "\"]"));
         verifyRegistration("%FE%AF%0D%0D%B5%1D%C7%23%B78%FD%8B%89%5C%95%3A%5D%22%BA%7B", "feaf0d0db51dc723b738fd8b895c953a5d22ba7b");
+    }
+
+    @Test
+    public void disconectPeer() throws UnsupportedEncodingException {
+        assertThat(getInfoHashes(), is("[]"));
+        String hexInfoHash = randomInfoHash();
+        verifyRegistration(hexInfoHash);
+        restTemplate.getForEntity(URI.create("/announce?port=2048&info_hash=" + hexInfoHash + "&event=stopped"), String.class);
+        assertThat(getInfoHashes(), is("[]"));
     }
 
     @Test
@@ -60,7 +70,7 @@ public class AnnounceIntegrationTest {
 
     @Test
     public void shoudAnnounceOverUdop() throws Exception {
-        String infohash = "feaf0d0db51dc723b738fd8b895c953a5d22ba7b";
+        String infohash = randomInfoHash();
         Peer anotherPeer = new Peer();
         String anotherIp = "ffffffff";
         anotherPeer.setIp(anotherIp);
@@ -121,12 +131,19 @@ public class AnnounceIntegrationTest {
     }
 
     private void verifyRegistration(String rawInfoHash, String readableInfoHash) {
-        restTemplate.getForEntity(URI.create("/announce?info_hash=" + rawInfoHash), String.class);
+        restTemplate.getForEntity(URI.create("/announce?port=2048&info_hash=" + rawInfoHash), String.class);
         String body = getInfoHashes();
         assertThat(body, Matchers.containsString(readableInfoHash));
     }
 
     private String getInfoHashes() {
         return restTemplate.getForEntity(URI.create("/info_hash"), String.class).getBody();
+    }
+
+    @NotNull
+    private String randomInfoHash() {
+        byte[] bytes = new byte[20];
+        new Random().nextBytes(bytes);
+        return HexUtils.toHexString(bytes);
     }
 }

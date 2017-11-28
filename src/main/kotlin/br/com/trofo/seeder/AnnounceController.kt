@@ -47,6 +47,7 @@ class AnnounceController {
     @RequestMapping("/announce", produces = arrayOf("text/plain"))
     fun announce(
             @RequestParam(value = "info_hash") infoHash: String,
+            @RequestParam(value = "port") port: Int,
             @RequestParam(value = "event", required = false) eventType: String? = "started",
             request: HttpServletRequest): String {
 
@@ -54,7 +55,6 @@ class AnnounceController {
 
         var responseString = "error"
         try {
-            var port = getPort(request)
             val remoteAddress = getAddress(request)
             var ip = HexUtils.toHexString(remoteAddress.address)
 
@@ -66,14 +66,6 @@ class AnnounceController {
         }
 
         return responseString
-    }
-
-    @Throws(NumberFormatException::class)
-    private fun getPort(request: HttpServletRequest): Int {
-        val parameter = request.getParameter("port")
-        return if (parameter != null) {
-            Integer.parseInt(parameter)
-        } else request.remotePort
     }
 
     @Throws(BeansException::class)

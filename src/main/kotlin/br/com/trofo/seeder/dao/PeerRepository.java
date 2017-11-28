@@ -8,6 +8,6 @@ import java.util.Set;
 
 public interface PeerRepository extends JpaRepository<Peer, Long> {
 
-    @Query("select distinct infoHash from Peer")
+    @Query("select distinct infoHash from Peer where expires > now()")
     Set<String> findDistinctInfoHashes();
 }
