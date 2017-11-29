@@ -6,6 +6,7 @@ import org.apache.tomcat.util.buf.HexUtils;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.URI;
+import java.net.*;
 import java.util.Date;
 import java.util.Random;
 
@@ -67,9 +65,33 @@ public class AnnounceIntegrationTest {
         assertThat(connectionId, is(not(startNewConnection())));
     }
 
+    @Test
+    @Ignore("Pending implementation")
+    public void shouldAnnounceOverUdpv6() throws Exception {
+        String infohash = randomInfoHash();
+        String transactionId = "b77e0246";
+        String payload = buildPayload(infohash, transactionId);
+
+        byte[] buf = HexUtils.fromHexString(payload);
+        InetAddress address = InetAddress.getLoopbackAddress();
+        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+        DatagramSocket socket = new DatagramSocket();
+
+        InetAddress loopbackAddress = Inet6Address.getByName("::1");
+        packet.setAddress(loopbackAddress);
+        packet.setPort(8090);
+        socket.send(packet);
+
+        assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
+
+        DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
+        socket.receive(responsePacket);
+        System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
+        //TODO assert response for ipv6
+    }
 
     @Test
-    public void shoudAnnounceOverUdop() throws Exception {
+    public void shoudAnnounceOverUddp() throws Exception {
         String infohash = randomInfoHash();
         Peer anotherPeer = new Peer();
         String anotherIp = "ffffffff";
@@ -79,14 +101,8 @@ public class AnnounceIntegrationTest {
         anotherPeer.setInfoHash(infohash);
         peerRepository.save(anotherPeer);
 
-
-        String connectionId = "f56350d9cf7c3735";
-        String action = "00000001";
-        String port = "2327";
-        String event = "00000002";
-        String peerId = "2d7142333347302d684e545f6b59746865214e5a";
         String transactionId = "b77e0246";
-        String payload = connectionId + action + transactionId + infohash + peerId + "000000000019f24700000000050400000000000000000000" + event + "00000000fcd454b2000000c8" + port + "02092f616e6e6f756e6365";
+        String payload = buildPayload(infohash, transactionId);
 
         byte[] buf = HexUtils.fromHexString(payload);
         InetAddress address = InetAddress.getLoopbackAddress();
@@ -104,6 +120,16 @@ public class AnnounceIntegrationTest {
         String interval = "00000e10";
         String expected = "00000001" + transactionId + interval + "00000001" + "00000001" + "ffffffff0001";
         assertThat(HexUtils.toHexString(responsePacket.getData()), is(expected));
+    }
+
+    @NotNull
+    private String buildPayload(String infohash, String transactionId) {
+        String connectionId = "f56350d9cf7c3735";
+        String action = "00000001";
+        String port = "2327";
+        String event = "00000002";
+        String peerId = "2d7142333347302d684e545f6b59746865214e5a";
+        return connectionId + action + transactionId + infohash + peerId + "000000000019f24700000000050400000000000000000000" + event + "00000000fcd454b2000000c8" + port + "02092f616e6e6f756e6365";
     }
 
     @NotNull

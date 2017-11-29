@@ -11,6 +11,7 @@ import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.Inet6Address;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -39,7 +40,10 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         if (Arrays.equals(firstEightBytes, connectionMagicNumber)) {
             acceptConnectionRequest(ctx, msg, bytes);
         } else {
-            //TODO ipV6 pending
+            if (msg.sender().getAddress() instanceof Inet6Address) {
+                //TODO ipV6 pending
+                throw new RuntimeException("IPV6 not implemented yet");
+            }
             ipV4AnnounceResponse(ctx, msg, bytes);
         }
     }

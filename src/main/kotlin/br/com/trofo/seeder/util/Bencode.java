@@ -22,11 +22,7 @@
 package br.com.trofo.seeder.util;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * <p>Handles encoding and decoding of Strings, Integers, Lists and Maps
@@ -175,7 +171,7 @@ public class Bencode {
         TreeMap result = new TreeMap();
         int readByte;
         char charByte;
-        // TODO: this whole index thing is silly and has bitten me too many
+        // This whole index thing is silly and has bitten me too many
         // times now, please eliminate.
         int index = 0;
         try {

@@ -87,7 +87,7 @@ class AnnounceController {
                 leechers++
             }
 
-            val ipBytes = BitTorrentEncoder.hexStringToByteArray(requestingPeer.ip)
+            val ipBytes = HexUtils.fromHexString(requestingPeer.ip)
 
             val port = ByteBuffer.allocate(4)
             port.putInt(requestingPeer.port!!)
