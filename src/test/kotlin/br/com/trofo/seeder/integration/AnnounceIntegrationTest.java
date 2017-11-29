@@ -6,7 +6,6 @@ import org.apache.tomcat.util.buf.HexUtils;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,34 +65,24 @@ public class AnnounceIntegrationTest {
     }
 
     @Test
-    @Ignore("Pending implementation")
-    public void shouldAnnounceOverUdpv6() throws Exception {
-        String infohash = randomInfoHash();
-        String transactionId = "b77e0246";
-        String payload = buildPayload(infohash, transactionId);
+    public void shouldAnnounceOverUdpIPv6() throws Exception {
+        InetAddress address = Inet6Address.getByName("::1");
+        String anotherIp = HexUtils.toHexString(Inet6Address.getByName("::2").getAddress());
 
-        byte[] buf = HexUtils.fromHexString(payload);
-        InetAddress address = InetAddress.getLoopbackAddress();
-        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        DatagramSocket socket = new DatagramSocket();
-
-        InetAddress loopbackAddress = Inet6Address.getByName("::1");
-        packet.setAddress(loopbackAddress);
-        packet.setPort(8090);
-        socket.send(packet);
-
-        assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
-
-        DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
-        socket.receive(responsePacket);
-        //TODO assert response for ipv6
+        announceAndVerifyResponse(anotherIp, address);
     }
 
     @Test
-    public void shoudAnnounceOverUddp() throws Exception {
+    public void shoudAnnounceOverUddpIPv4() throws Exception {
+        String anotherIp = "ffffffff";
+        InetAddress address = InetAddress.getLoopbackAddress();
+
+        announceAndVerifyResponse(anotherIp, address);
+    }
+
+    private void announceAndVerifyResponse(String anotherIp, InetAddress address) throws IOException {
         String infohash = randomInfoHash();
         Peer anotherPeer = new Peer();
-        String anotherIp = "ffffffff";
         anotherPeer.setIp(anotherIp);
         anotherPeer.setPort(1);
         anotherPeer.setExpires(new Date(System.currentTimeMillis() + 10000));
@@ -103,21 +92,31 @@ public class AnnounceIntegrationTest {
         String transactionId = "b77e0246";
         String payload = buildPayload(infohash, transactionId);
 
+        DatagramSocket socket = sendPayload(address, payload);
+
+        assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
+
+        boolean ipv6 = anotherIp.length() > 8;
+
+        byte[] buff = ipv6 ? new byte[38] : new byte[26];
+
+        DatagramPacket responsePacket = new DatagramPacket(buff, buff.length);
+        socket.receive(responsePacket);
+
+        String interval = "00000e10";
+        String expected = "00000001" + transactionId + interval + "00000001" + "00000001" + anotherIp + "0001";
+        assertThat(HexUtils.toHexString(responsePacket.getData()), is(expected));
+    }
+
+    @NotNull
+    private DatagramSocket sendPayload(InetAddress address, String payload) throws IOException {
         byte[] buf = HexUtils.fromHexString(payload);
-        InetAddress address = InetAddress.getLoopbackAddress();
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         DatagramSocket socket = new DatagramSocket();
         packet.setAddress(address);
         packet.setPort(8090);
         socket.send(packet);
-
-        assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
-        DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
-        socket.receive(responsePacket);
-
-        String interval = "00000e10";
-        String expected = "00000001" + transactionId + interval + "00000001" + "00000001" + "ffffffff0001";
-        assertThat(HexUtils.toHexString(responsePacket.getData()), is(expected));
+        return socket;
     }
 
     @NotNull

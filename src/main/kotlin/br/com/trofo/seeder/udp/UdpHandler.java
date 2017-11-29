@@ -11,7 +11,6 @@ import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.Inet6Address;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -33,26 +32,23 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         this.peerService = peerService;
     }
 
-    @Override
     /* According to bit torrent specification available at
       @see <a href="http://www.bittorrent.org/beps/bep_0015.html"></a>
      */
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
         byte[] bytes = getMessageBytes(msg);
         byte[] firstEightBytes = Arrays.copyOfRange(bytes, 0, 8);
         if (Arrays.equals(firstEightBytes, connectionMagicNumber)) {
             acceptConnectionRequest(ctx, msg, bytes);
         } else {
-            if (msg.sender().getAddress() instanceof Inet6Address) {
-                //TODO ipV6 pending
-                throw new RuntimeException("IPV6 not implemented yet");
-            }
-            ipV4AnnounceResponse(ctx, msg, bytes);
+            announceResponse(ctx, msg, bytes);
         }
     }
 
-    private void ipV4AnnounceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
+    private void announceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
         String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
+        // TODO use ip provided on 84-88 whne not zero
         String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
         String event = HexUtils.toHexString(Arrays.copyOfRange(bytes, 80, 84));
         int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
