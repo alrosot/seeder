@@ -4,35 +4,26 @@
  */
 package br.com.trofo.seeder.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Temporal;
-import javax.persistence.UniqueConstraint;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Table;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- *
  * @author Andoreh
  */
 @Entity
 @Table(appliesTo = "peer", indexes = {
-    @Index(name = "searchIndex", columnNames = {"infoHash", "expires"})})
-@javax.persistence.Table(name = "peer", uniqueConstraints =
+        @Index(name = "searchIndex", columnNames = {"infoHash", "expires"})})
+@javax.persistence.Table(uniqueConstraints =
 @UniqueConstraint(columnNames = {"infoHash", "ip", "port"}))
 @NamedQueries({
-    @NamedQuery(name = "getPeers",
-    query = "from Peer where infoHash = :infoHash and expires > :expires and not (port = :port and ip = :ip)"),
-    @NamedQuery(name = "findPeer",
-    query = "from Peer where infoHash = :infoHash and port = :port and ip = :ip")})
+        @NamedQuery(name = "getPeers",
+                query = "from Peer where infoHash = :infoHash and expires > :expires and not (port = :port and ip = :ip)"),
+        @NamedQuery(name = "findPeer",
+                query = "from Peer where infoHash = :infoHash and port = :port and ip = :ip")})
 public class Peer implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -82,21 +73,13 @@ public class Peer implements Serializable {
         this.port = port;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public boolean isComplete() {
         return complete;
     }
 
     public void setComplete(boolean complete) {
         this.complete = complete;
-    }    
+    }
 
     @Override
     public int hashCode() {
@@ -111,10 +94,7 @@ public class Peer implements Serializable {
             return false;
         }
         Peer other = (Peer) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 
     @Override

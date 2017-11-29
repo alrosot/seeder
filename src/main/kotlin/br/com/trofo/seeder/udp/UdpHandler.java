@@ -24,18 +24,21 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
 @Component
 public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    private static byte[] connectionMagicNumber = HexUtils.fromHexString("0000041727101980");
-    private Random generator = new Random();
+    private static final byte[] connectionMagicNumber = HexUtils.fromHexString("0000041727101980");
+    private final Random generator = new Random();
+    private final PeerService peerService;
+
     @Autowired
-    private PeerService peerService;
+    public UdpHandler(PeerService peerService) {
+        this.peerService = peerService;
+    }
 
     @Override
-    /**
-     * @see <a href="http://www.bittorrent.org/beps/bep_0015.html"></a>
+    /* According to bit torrent specification available at
+      @see <a href="http://www.bittorrent.org/beps/bep_0015.html"></a>
      */
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
         byte[] bytes = getMessageBytes(msg);
-        System.out.println(HexUtils.toHexString(bytes));
         byte[] firstEightBytes = Arrays.copyOfRange(bytes, 0, 8);
         if (Arrays.equals(firstEightBytes, connectionMagicNumber)) {
             acceptConnectionRequest(ctx, msg, bytes);
@@ -58,7 +61,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         StringBuilder sb = new StringBuilder();
 
         sb.append("00000001"); // action - 1 announce
-        sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 12, 16))); // trasnactionId
+        sb.append(HexUtils.toHexString(Arrays.copyOfRange(bytes, 12, 16))); // transaction id
 
         sb.append(intToHex(PeerService.INTERVAL, 8));
         sb.append(intToHex(peers.size(), 8)); // leechers

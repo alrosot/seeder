@@ -13,9 +13,7 @@ public class ContainerConfig {
         return (containerFactory) -> {
             if (containerFactory instanceof TomcatEmbeddedServletContainerFactory) {
                 TomcatEmbeddedServletContainerFactory tomcatContainerFactory = (TomcatEmbeddedServletContainerFactory) containerFactory;
-                tomcatContainerFactory.addConnectorCustomizers((connector) -> {
-                    connector.setUseBodyEncodingForURI(true);
-                });
+                tomcatContainerFactory.addConnectorCustomizers((connector) -> connector.setUseBodyEncodingForURI(true));
             }
         };
     }

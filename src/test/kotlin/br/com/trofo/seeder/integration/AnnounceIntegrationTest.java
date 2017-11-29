@@ -86,7 +86,6 @@ public class AnnounceIntegrationTest {
 
         DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
         socket.receive(responsePacket);
-        System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
         //TODO assert response for ipv6
     }
 
@@ -115,7 +114,6 @@ public class AnnounceIntegrationTest {
         assertThat(getInfoHashes(), is("[\"" + infohash + "\"]"));
         DatagramPacket responsePacket = new DatagramPacket(new byte[26], 26);
         socket.receive(responsePacket);
-        System.out.println("Udp response: " + HexUtils.toHexString(responsePacket.getData()));
 
         String interval = "00000e10";
         String expected = "00000001" + transactionId + interval + "00000001" + "00000001" + "ffffffff0001";

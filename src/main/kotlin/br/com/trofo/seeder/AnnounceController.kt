@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 class AnnounceController {
 
-    val logger = LoggerFactory.getLogger(AnnounceController::class.java)
+    val logger = LoggerFactory.getLogger(AnnounceController::class.java)!!
 
     @Value("\${spring.http.encoding.charset}")
     private lateinit var encoding: String

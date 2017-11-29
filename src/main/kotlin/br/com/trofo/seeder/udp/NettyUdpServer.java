@@ -22,9 +22,13 @@ public class NettyUdpServer {
     @Value("${server.udp.port}")
     private int udpPort;
 
+    private final UdpHandler udpHandler;
+    private final Logger LOG = LoggerFactory.getLogger(NettyUdpServer.class);
+
     @Autowired
-    private UdpHandler udpHandler;
-    private Logger LOG = LoggerFactory.getLogger(NettyUdpServer.class);
+    public NettyUdpServer(UdpHandler udpHandler) {
+        this.udpHandler = udpHandler;
+    }
 
     @PreDestroy
     public void destroy() throws InterruptedException {
