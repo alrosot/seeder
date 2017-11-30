@@ -69,8 +69,9 @@ class AnnounceIntegrationTest {
     @Test
     @Throws(Exception::class)
     fun shouldAnnounceOverUdpIPv6() {
-        val address = Inet6Address.getByName("::1")
+        val address = Inet6Address.getLoopbackAddress()
         val anotherIp = HexUtils.toHexString(Inet6Address.getByName("::1").address)
+        assertThat(anotherIp.length, `is`(32))
 
         announceAndVerifyResponse(anotherIp, address)
     }
