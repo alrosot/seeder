@@ -1,7 +1,6 @@
-[![Build Status](https://travis-ci.org/alrosot/seeder.svg?branch=master)](https://travis-ci.org/alrosot/seeder)
 
 # Seeder
-
+[![CircleCI](https://circleci.com/gh/alrosot/seeder.svg?style=shield)](https://circleci.com/gh/alrosot/seeder)
 An out-of-the-box Srping Boot torrent tracker
 
 ## Feature list
