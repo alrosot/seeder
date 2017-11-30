@@ -48,8 +48,11 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void announceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
         String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
-        // TODO use ip provided on 84-88 whne not zero
-        String ip = HexUtils.toHexString(msg.sender().getAddress().getAddress());
+        byte[] clientIpAddress = Arrays.copyOfRange(bytes, 84, 88);
+        if (clientIpAddress.equals(new byte[4])) {
+            clientIpAddress = msg.sender().getAddress().getAddress();
+        }
+        String ip = HexUtils.toHexString(clientIpAddress);
         String event = HexUtils.toHexString(Arrays.copyOfRange(bytes, 80, 84));
         int port = (bytes[96] << 8) | (bytes[97] & 0x00ff);
         Collection<Peer> peers = peerService.registerPeer(infoHash, ip, port, Optional.of(getByUdpCode(event)));

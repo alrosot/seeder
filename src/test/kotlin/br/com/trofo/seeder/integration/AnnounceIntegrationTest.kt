@@ -27,14 +27,14 @@ class AnnounceIntegrationTest {
     private val restTemplate: TestRestTemplate? = null
 
     @Autowired
-    private val peerRepository: PeerRepository? = null
+    private lateinit var peerRepository: PeerRepository
 
     private val infoHashes: String
         get() = restTemplate!!.getForEntity(URI.create("/info_hash"), String::class.java).body
 
     @Before
     fun cleanUp() {
-        peerRepository!!.deleteAll()
+        peerRepository.deleteAll()
     }
 
     @Test
@@ -76,6 +76,20 @@ class AnnounceIntegrationTest {
     }
 
     @Test
+    fun `should honour provided IP`() {
+        val infohash = randomInfoHash()
+        val address = InetAddress.getLoopbackAddress()
+
+        val clientIpAddress = "fffffaaa"
+        sendPayload(address, buildPayload(infohash, randomTransactionId(), clientIpAddress))
+        infoHashes
+        val response = sendPayload(address, buildPayload(infohash, randomTransactionId()))
+
+        assertThat(receiveAnnounceDatagram(false, response),
+                `is`("00000001b77e024600000e100000000100000001fffffaaa2327"))
+    }
+
+    @Test
     @Throws(Exception::class)
     fun shoudAnnounceOverUddpIPv4() {
         val anotherIp = "ffffffff"
@@ -94,7 +108,7 @@ class AnnounceIntegrationTest {
         anotherPeer.infoHash = infohash
         peerRepository!!.save(anotherPeer)
 
-        val transactionId = "b77e0246"
+        val transactionId = randomTransactionId()
         val payload = buildPayload(infohash, transactionId)
 
         val socket = sendPayload(address, payload)
@@ -103,15 +117,22 @@ class AnnounceIntegrationTest {
 
         val ipv6 = anotherIp!!.length > 8
 
-        val buff = if (ipv6) ByteArray(38) else ByteArray(26)
-
-        val responsePacket = DatagramPacket(buff, buff.size)
-        socket.receive(responsePacket)
+        val responsePacket = receiveAnnounceDatagram(ipv6, socket)
 
         val interval = "00000e10"
         val expected = "00000001" + transactionId + interval + "00000001" + "00000001" + anotherIp + "0001"
-        assertThat(HexUtils.toHexString(responsePacket.data), `is`(expected))
+        assertThat(responsePacket, `is`(expected))
     }
+
+    private fun receiveAnnounceDatagram(ipv6: Boolean, socket: DatagramSocket): String? {
+        val buff = if (ipv6) ByteArray(38) else ByteArray(26)
+        val responsePacket = DatagramPacket(buff, buff.size)
+        socket.receive(responsePacket)
+        return HexUtils.toHexString(responsePacket.data)
+    }
+
+    //TODO no quite yet
+    private fun randomTransactionId() = "b77e0246"
 
     @Throws(IOException::class)
     private fun sendPayload(address: InetAddress, payload: String): DatagramSocket {
@@ -124,13 +145,13 @@ class AnnounceIntegrationTest {
         return socket
     }
 
-    private fun buildPayload(infohash: String, transactionId: String): String {
+    private fun buildPayload(infohash: String, transactionId: String, clientIpAddress: String = "00000000"): String {
         val connectionId = "f56350d9cf7c3735"
         val action = "00000001"
         val port = "2327"
         val event = "00000002"
         val peerId = "2d7142333347302d684e545f6b59746865214e5a"
-        return connectionId + action + transactionId + infohash + peerId + "000000000019f24700000000050400000000000000000000" + event + "00000000fcd454b2000000c8" + port + "02092f616e6e6f756e6365"
+        return connectionId + action + transactionId + infohash + peerId + "000000000019f24700000000050400000000000000000000" + event + clientIpAddress + "fcd454b2000000c8" + port + "02092f616e6e6f756e6365"
     }
 
     @Throws(IOException::class)
