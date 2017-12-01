@@ -49,7 +49,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private void announceResponse(ChannelHandlerContext ctx, DatagramPacket msg, byte[] bytes) {
         String infoHash = HexUtils.toHexString(Arrays.copyOfRange(bytes, 16, 36));
         byte[] clientIpAddress = Arrays.copyOfRange(bytes, 84, 88);
-        if (clientIpAddress.equals(new byte[4])) {
+        if (Arrays.equals(clientIpAddress, new byte[4])) {
             clientIpAddress = msg.sender().getAddress().getAddress();
         }
         String ip = HexUtils.toHexString(clientIpAddress);

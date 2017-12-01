@@ -40,7 +40,7 @@ public class NettyUdpServer {
     @PostConstruct
     public synchronized void createUdpServer() throws Exception {
         if (channel == null) {
-            LOG.info("Starting Netty Server");
+            LOG.info("Starting Netty UDP server on " + udpPort);
             EventLoopGroup group = new NioEventLoopGroup();
             Bootstrap b = new Bootstrap();
             b.group(group)

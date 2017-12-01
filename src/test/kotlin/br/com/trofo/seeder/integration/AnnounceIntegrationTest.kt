@@ -91,6 +91,17 @@ class AnnounceIntegrationTest {
     }
 
     @Test
+    fun `should default to sender IP when address not provided`() {
+        val infohash = randomInfoHash()
+        val address = InetAddress.getLoopbackAddress()
+
+        val clientIpAddress = "00000000"
+        sendPayload(address, buildPayload(infohash, randomTransactionId(), clientIpAddress))
+        infoHashes
+        assertThat(peerRepository.findAll().first().ip, `is`("7f000001"))
+    }
+
+    @Test
     @Throws(Exception::class)
     fun shoudAnnounceOverUddpIPv4() {
         val anotherIp = "ffffffff"
