@@ -84,10 +84,11 @@ class AnnounceIntegrationTest {
         val clientIpAddress = "fffffaaa"
         sendPayload(address, buildPayload(infohash, randomTransactionId(), clientIpAddress))
         infoHashes
-        val response = sendPayload(address, buildPayload(infohash, randomTransactionId()))
+        val transactionId = randomTransactionId()
+        val response = sendPayload(address, buildPayload(infohash, transactionId))
 
         assertThat(receiveAnnounceDatagram(false, response),
-                `is`("00000001b77e024600000e100000000100000001fffffaaa2327"))
+                `is`("00000001${transactionId}00000e100000000100000001fffffaaa2327"))
     }
 
     @Test
@@ -143,8 +144,15 @@ class AnnounceIntegrationTest {
         return HexUtils.toHexString(responsePacket.data)
     }
 
-    //TODO no quite yet
-    private fun randomTransactionId() = "b77e0246"
+    private fun randomTransactionId() = randomHex(8)
+
+    private fun randomInfoHash(): String = randomHex(40)
+
+    private fun randomHex(size: Int): String {
+        var byteArray = ByteArray(size / 2)
+        Random().nextBytes(byteArray)
+        return HexUtils.toHexString(byteArray)
+    }
 
     @Throws(IOException::class)
     private fun sendPayload(address: InetAddress, payload: String): DatagramSocket {
@@ -196,9 +204,4 @@ class AnnounceIntegrationTest {
         assertThat(body, Matchers.containsString(readableInfoHash))
     }
 
-    private fun randomInfoHash(): String {
-        val bytes = ByteArray(20)
-        Random().nextBytes(bytes)
-        return HexUtils.toHexString(bytes)
-    }
 }
