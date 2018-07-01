@@ -1,7 +1,7 @@
 package br.com.trofo.seeder.config;
 
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Configuration;
 public class ContainerConfig {
 
     @Bean
-    EmbeddedServletContainerCustomizer containerCustomizer() {
+    WebServerFactoryCustomizer containerCustomizer() {
         return (containerFactory) -> {
-            if (containerFactory instanceof TomcatEmbeddedServletContainerFactory) {
-                TomcatEmbeddedServletContainerFactory tomcatContainerFactory = (TomcatEmbeddedServletContainerFactory) containerFactory;
+            if (containerFactory instanceof TomcatServletWebServerFactory) {
+                TomcatServletWebServerFactory tomcatContainerFactory = (TomcatServletWebServerFactory) containerFactory;
                 tomcatContainerFactory.addConnectorCustomizers((connector) -> connector.setUseBodyEncodingForURI(true));
             }
         };
