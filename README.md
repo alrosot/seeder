@@ -4,3 +4,4 @@
 An out-of-the-box Srping Boot torrent tracker
 
 ## Feature list
+- Supports UDP and TCP
